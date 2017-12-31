@@ -4,19 +4,8 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"log"
-	"os"
 	"strings"
 )
-
-func handleFn(file *os.File) func(error) {
-	return func(err error) {
-		if err != nil {
-			file.Close()
-			log.Fatal(err)
-		}
-	}
-}
 
 func main() {
 	csvstring := "name, age, occupation"
