@@ -3,43 +3,37 @@ package main
 import (
 	"fmt"
 	"io"
-	"log"
 	"os"
 )
-
-func handleFn(file *os.File) func(error) {
-	return func(err error) {
-		if err != nil {
-			file.Close()
-			log.Fatal(err)
-		}
-	}
-}
 
 func main() {
 	const BufferSize = 100
 	file, err := os.Open("filetoread.txt")
-	handle := handleFn(file)
-	handle(err)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer file.Close()
+
+	buffer := make([]byte, BufferSize)
 
 	for {
-		// Reinstanting the buffer for each iteration to zero out all the
-		// elements. Even this is technically wrong because, say, for a file
-		// size of 101 bytes, we'll end up instantiating a 100 element wide
-		// slice just to read that one residual byte.
-		buffer := make([]byte, BufferSize)
 		bytesread, err := file.Read(buffer)
 
-		// We don't have to exit as an error when the value returned as an
-		// error is the EOF token.
-		if err == io.EOF {
-			file.Close()
+		// err value can be io.EOF, which means that we reached the end of
+		// file, and we have to terminate the loop. Note the fmt.Println lines
+		// will get executed for the last chunk because the io.EOF gets
+		// returned from the Read function only on the *next* iteration, and
+		// the bytes returned will be 0 on that read.
+		if err != nil {
+			if err != io.EOF {
+				fmt.Println(err)
+			}
+
 			break
-		} else {
-			handle(err)
 		}
 
 		fmt.Println("bytes read: ", bytesread)
-		fmt.Println("bytestream to string: ", string(buffer))
+		fmt.Println("bytestream to string: ", string(buffer[:bytesread]))
 	}
 }

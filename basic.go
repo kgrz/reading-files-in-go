@@ -2,32 +2,31 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 )
 
-func handleFn(file *os.File) func(error) {
-	return func(err error) {
-		if err != nil {
-			file.Close()
-			log.Fatal(err)
-		}
-	}
-}
-
 func main() {
 	file, err := os.Open("filetoread.txt")
-	handle := handleFn(file)
-	handle(err)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer file.Close()
 
 	fileinfo, err := file.Stat()
-	handle(err)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	filesize := fileinfo.Size()
 	buffer := make([]byte, filesize)
 
 	bytesread, err := file.Read(buffer)
-	handle(err)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	fmt.Println("bytes read: ", bytesread)
 	fmt.Println("bytestream to string: ", string(buffer))
